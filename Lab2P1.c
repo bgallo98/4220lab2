@@ -7,6 +7,11 @@
 	int colSize1, rowSize1;
 	int colSize2, rowSize2;
 
+//function should perform convolution for each pthread and return the target array value
+//to perform convolution
+//int *Convolution(void *
+
+
 
 int main(void)
 {
@@ -60,10 +65,44 @@ int main(void)
 	}
 	//close the file
 	fclose(myFile);
+//////////////////////////////////now have the desired arrays to begin convolution
 
+	/*pthread_t thread0; // 
 
+	void 
 
+	int targetArray[colSize1*rowSize1];//create 1D array with the same # of elements as the first array
+
+	for (i=0;i<colsize*/
+	
+	int a = 0;
+	int b = 0;
+	
+	for(i=0;i<colSize1*rowSize1;i++)
+	{
+		
+		int target1;								             //  v--- doesnt change
+		printf("\n%d\n", target1 = numberArray[a][b-1]*filterArray[a][0]); //starting 0,-1 -- 0,[0]
+		int target2;
+		printf("\n%d\n", target2 = numberArray[a][b]*filterArray[a][1]);  //starting 0, 0 --  0,[1]
+		int target3;
+		printf("\n%d\n", target3 = numberArray[a][b+1]*filterArray[a][2]);  //starting 0,1 -- 0,[2]
+	
+		int sum = target1+target2+target3;
+		printf("\n target is %d\n", sum);
+	
+			//a++;
+			b++;
+		
+	}	
+		
 	return 0;
 }
+
+
+
+
+
+
 
 
