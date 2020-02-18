@@ -9,7 +9,7 @@
 	struct arrayInfo {
 		int colSize1;
 		int rowSize1;
-		int targetArray[20][10];
+		int targetArray[20][20];
 };
 //create an instance of arrayInfo globally
 struct arrayInfo info;
@@ -17,7 +17,7 @@ struct arrayInfo info;
 int colSize2, rowSize2;
 
 //initialize 2D array based on Column and Row sizes from file
-int numberArray[20][10];
+int numberArray[20][20];
 //initialize 2D array based on Column and Row sizes from file
 int filterArray[1][3];
 
@@ -26,11 +26,11 @@ int filterArray[1][3];
 
 //function should perform convolution for each pthread and return the target array value
 //to perform convolution
-void *Convolution(void *args_thread)
+void *Convolution(void *t)
 {		
 	//int sum;
 	int a,b;	
-
+	int counter=0;
 	for(a=0;a<info.rowSize1;a++)
 	{
 		for(b=0;b<info.colSize1;b++)
@@ -48,7 +48,7 @@ void *Convolution(void *args_thread)
 				//sum = target2+target3;
 				//info.targetArray[a][b] = sum;
 			}
-			else if (b==9)
+			else if (b==(info.colSize1-1))
 			{
 				info.targetArray[a][b] = (numberArray[a][b-1]*filterArray[0][0]) + (numberArray[a][b]*filterArray[0][1]);
 				//sum = target1+target2;
@@ -56,19 +56,22 @@ void *Convolution(void *args_thread)
 			}
 			else
 			{
-				info.targetArray[a][b] = (numberArray[a][b-1]*filterArray[0][0]) + (numberArray[a][b]*filterArray[0][1]) +(numberArray[a][b+1]*filterArray[0][2]);
+				info.targetArray[a][b] = (numberArray[a][b-1]*filterArray[0][0]) + (numberArray[a][b]*filterArray[0][1]) + (numberArray[a][b+1]*filterArray[0][2]);
 				//sum = target1+target2+target3;
 				//info.targetArray[a][b] = sum;
 			}
+			counter++;
 		}
 	}
 
-	pthread_exit(NULL);	
+	pthread_exit((void*) counter);	
 }
 
 
 int main(void)
 {
+	pthread_t thread_id;
+
 	//open the desired file
     	FILE *myFile;
     	myFile = fopen("2x10.txt", "r");
@@ -112,31 +115,91 @@ int main(void)
 			printf("Filter Number is: %d\n", filterArray[i][j]);
 		}
 	}
-	//close the file
-	fclose(myFile);
-//////////////////////////////////now have the desired arrays to begin convolution
-
-	pthread_t thread_id;
-
+////////////////////////////////////////////////////
+//now have the desired arrays to begin convolution//
+////////////////////////////////////////////////////
+//1 thread
 	int rc;
-	rc = pthread_create(&thread_id,NULL,Convolution,(void*)&info);
+	int *numConvolutions;
+
+	pthread_t thread1;
+	//create a thread
+	rc = pthread_create(&thread1, NULL, Convolution, (void *) &info);
 	if (rc){
           printf("ERROR; return code from pthread_create() is %d\n", rc);
           exit(-1);
 	}
-	int a,b;
+	//join the thread
+	rc = pthread_join(thread1, (void**)&numConvolutions);
+		
+       		if (rc) 
+		{
+			printf("ERROR; return code from pthread_join() is %d\n", rc);
+          		exit(-1);
+        	}
+	printf("The number of convolutions with 1 thread: %d\n", numConvolutions);
+
+////////////////////////////////
+//a thread per row (2 threads)
+	pthread_t thread2[2];
+	//create 2 threads		
+	for(i=0;i<info.rowSize1;i++)
+	{
+		rc = pthread_create(&thread2[i], NULL, Convolution, (void *) &info);
+		if (rc)
+		{
+          		printf("ERROR; return code from pthread_create() is %d\n", rc);
+          		exit(-1);
+		}
+	}
+	//join 2 threads
+	for(i=0;i<info.rowSize1;i++)
+	{
+		rc = pthread_join(thread2[i], (void**)&numConvolutions);
+		
+       		if (rc) 
+		{
+			printf("ERROR; return code from pthread_join() is %d\n", rc);
+          		exit(-1);
+        	}
+	}
+	printf("The number of convolutions with a thread for each row: %d\n", numConvolutions);		
+	
+/////////////////////////////////
+//a thread for every element (20 threads)
+	pthread_t thread3[20];
+	//create 20 threads		
+	for(i=0;i<info.rowSize1*info.colSize1;i++) 
+	{
+		rc = pthread_create(&thread3[i], NULL, Convolution, (void *) &info);
+		if (rc)
+		{
+          		printf("ERROR; return code from pthread_create() is %d\n", rc);
+          		exit(-1);
+		}
+
+	}
+	//join 20 threads
+	for(i=0;i<info.rowSize1*info.colSize1;i++)
+	{
+		rc = pthread_join(thread3[i], (void**)&numConvolutions);
+       		if (rc) 
+		{
+			printf("ERROR; return code from pthread_join() is %d\n", rc);
+        	  	exit(-1);
+        	}
+	}
+	printf("The number of convolutions with a thread for each element: %d\n", numConvolutions);
+
 	//iterate through targetArray
-	for (a=0; a<info.rowSize1; a++) {
-		for(b=0; b<info.colSize1; b++) {
-			printf(" target array value: %d\n", info.targetArray[a][b]);
+	for (i=0; i<info.rowSize1; i++) {
+		for(j=0; j<info.colSize1; j++) {
+			printf(" target array value: %d\n", info.targetArray[i][j]);
 		}
 	}
 	pthread_exit(NULL); 
+	fclose(myFile); //close the file
 			
-	
-		
-
-		
 	return 0;
 }
 
