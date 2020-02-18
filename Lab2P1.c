@@ -13,7 +13,7 @@
 };
 //create an instance of arrayInfo globally
 struct arrayInfo info;
-//initialize the filterArray
+//initialize the filterArray parameters
 int colSize2, rowSize2;
 
 //initialize 2D array based on Column and Row sizes from file
@@ -21,14 +21,11 @@ int numberArray[20][20];
 //initialize 2D array based on Column and Row sizes from file
 int filterArray[1][3];
 
-
-
-
 //function should perform convolution for each pthread and return the target array value
 //to perform convolution
 void *Convolution(void *t)
-{		
-	//int sum;
+{	//pseudo code for this function is my previous attempt. I kept it as a reference to what is going on
+	int sum;	
 	int a,b;	
 	int counter=0;
 	for(a=0;a<info.rowSize1;a++)
@@ -70,6 +67,9 @@ void *Convolution(void *t)
 
 int main(void)
 {
+	clock_t start[3], end[3];
+	double total_time[3];	
+	
 	pthread_t thread_id;
 
 	//open the desired file
@@ -122,6 +122,8 @@ int main(void)
 	int rc;
 	int *numConvolutions;
 
+	start[1]=clock();
+
 	pthread_t thread1;
 	//create a thread
 	rc = pthread_create(&thread1, NULL, Convolution, (void *) &info);
@@ -139,8 +141,14 @@ int main(void)
         	}
 	printf("The number of convolutions with 1 thread: %d\n", numConvolutions);
 
+	end[1]=clock();
+	total_time[1] = ((double) end[1]-start[1]);
+	printf("total time with 1 thread: %lf\n\n", total_time[1]);
 ////////////////////////////////
 //a thread per row (2 threads)
+
+	start[2]=clock();	
+
 	pthread_t thread2[2];
 	//create 2 threads		
 	for(i=0;i<info.rowSize1;i++)
@@ -165,8 +173,14 @@ int main(void)
 	}
 	printf("The number of convolutions with a thread for each row: %d\n", numConvolutions);		
 	
+	end[2]=clock();
+	total_time[2] = ((double) end[2]-start[2]);
+	printf("total time with a thread for each row: %lf\n\n", total_time[2]);
 /////////////////////////////////
 //a thread for every element (20 threads)
+
+	start[3]=clock();	
+
 	pthread_t thread3[20];
 	//create 20 threads		
 	for(i=0;i<info.rowSize1*info.colSize1;i++) 
@@ -190,6 +204,11 @@ int main(void)
         	}
 	}
 	printf("The number of convolutions with a thread for each element: %d\n", numConvolutions);
+
+	end[3]=clock();
+	total_time[3] = ((double) end[3]-start[3]);
+	printf("total time with a thread for each element: %lf\n\n", total_time[3]);
+//////////////////////////////////
 
 	//iterate through targetArray
 	for (i=0; i<info.rowSize1; i++) {
