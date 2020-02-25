@@ -213,10 +213,12 @@ int main(void)
 
 	start[2]=clock();	
 	pthread_t thread2[20];
-	//create 2/20 threads		
+	//create 2/20 threads	
+	int counterArray[200] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20};
+	
 	for(i=0;i<info.rowSize1;i++)
 	{
-		rc = pthread_create(&thread2[i], NULL, Convolution2, (void *) i);
+		rc = pthread_create(&thread2[i], NULL, Convolution2, (void *) counterArray[i]);
 		if (rc)
 		{
           		printf("ERROR; return code from pthread_create() is %d\n", rc);
@@ -246,12 +248,14 @@ int main(void)
 
 	pthread_t thread3[200][200];
 
+	
+
 	temp2=0;
 	//create 20/200 threads		
 	for((info.y)=0;info.y<info.rowSize1;(info.y)++) {
 		for((info.z)=0;info.z<info.colSize1;(info.z)++) {
 
-			rc = pthread_create(&thread3[info.y][info.z], NULL, Convolution3, NULL);
+			rc = pthread_create(&thread3[info.y][info.z], NULL, Convolution3, (void*)counterArray[i]);
 			if (rc) 
 			{
 	          		printf("ERROR; return code from pthread_create() is %d\n", rc);
